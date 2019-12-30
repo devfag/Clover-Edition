@@ -59,12 +59,10 @@ def colPrint(text, col="0", wrap=True, end=None):
         width = settings.getint("text-wrap-width")
         width = 999999999 if width < 2 else width
         width = min(width, termWidth)
-        text = textwrap.fill(
-            text, width, replace_whitespace=False
-        )
-    print("\x1B[{}m{}\x1B[{}m".format(col, text, colors["default"]), end=end)
+        for para in text.strip().split('\n'):
+            out = textwrap.fill(para, width, replace_whitespace=False)
+            print("\x1B[{}m{}\x1B[{}m".format(col, out, colors["default"]), end=end)
     return text.count('\n') + 1
-
 
 def colInput(str, col1=colors["default"], col2=colors["default"]):
     val = input("\x1B[{}m{}\x1B[0m\x1B[{}m".format(col1, str, col1))
