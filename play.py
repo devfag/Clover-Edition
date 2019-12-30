@@ -340,6 +340,11 @@ def play(generator):
         colPrint(str(story_manager.story), colors["ai-text"])
 
         while True:
+
+            # TODO: breakup the game and menu logic into seperate classes w/ state changing
+            doAction = False # fall-through for if there's an action to be performed. used by retry
+            isRetry = False
+
             # Generate suggested actions
             act_alts = settings.getint("action-sugg")
             if act_alts > 0:
@@ -358,7 +363,8 @@ def play(generator):
                 print()
 
             bell()
-            action = colInput("You> ", colors["main-prompt"], colors["user-text"])
+            action = colInput("\nYou> ", colors["main-prompt"], colors["user-text"])
+            colPrint("\n", colors["user-text"])
 
             # Clear suggestions and user input
             if act_alts > 0:
@@ -394,6 +400,16 @@ def play(generator):
                     else:
                         colPrint(story_manager.story.story_start, colors["ai-text"])
                     continue
+                elif action == "retry":
+                    if len(story_manager.story.actions) == 0:
+                        colPrint("You can't retry the beginning (yet). ", colors["error"])
+                        continue
+                    action = story_manager.story.actions[-1]
+                    story_manager.story.actions = story_manager.story.actions[:-1]
+                    story_manager.story.results = story_manager.story.results[:-1]
+                    colPrint("Retrying last action. ", colors["message"])
+                    doAction = True
+                    isRetry = True
                 elif action == "set":
                     if len(cmdArgs) == 2 and cmdArgs[0] in settings:
                         currentSettingValue = settings[cmdArgs[0]]
@@ -424,9 +440,13 @@ def play(generator):
                         colPrint("Invalid setting: " + cmdArgs[0], colors["error"])
                         instructions()
                 else:
-                    colPrint("Invalid action: " + action, colors["error"])
+                    colPrint("Invalid command: " + action, colors["error"])
                     continue
             else:
+                doAction = True
+
+            if doAction:
+
                 if act_alts > 0:
                     # Options to select a suggestion action
                     if action in [str(i) for i in range(len(suggested_actions))]:
@@ -434,19 +454,17 @@ def play(generator):
                 action = action.strip()
                 # Crop actions to a max length
                 action = action[:4096]
-                if action != "":
+                if action != "" and not isRetry:
                     # Roll a 20 sided dice to make things interesting
                     d = random.randint(1, 20)
                     logger.debug("roll d20=%s", d)
-                    # If it says 'You say "' then it's still dialouge. Normalise it by removing `You say `, we will add again soon
-                    action = re.sub("^ ?[Yy]ou say [\"']", '"', action)
                     # remove unnecessary leading information from the action, such as > and 'you'
                     prefixRegex = re.search("^(?:>\s+)?(?:[Yy]ou\s+)?(.*)$", action)
                     if prefixRegex:
                         action = prefixRegex.group(1)
-                    # remove 'say' and convert outside quotes to double-quotes
                     sayRegex = re.search("^(?:[Ss]ay)?\s+([\"'].*[\"'])", action)
                     if sayRegex:
+                        # remove 'say' and convert outside quotes to double-quotes
                         action = '"' + sayRegex.group(1)[1:-1] + '"' if len(sayRegex.group(1)) >= 3 else "say nothing"
                         if settings.getboolean("action-d20"):
                             action = d20ify_speech(action, d)
