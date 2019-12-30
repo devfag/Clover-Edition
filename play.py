@@ -440,7 +440,14 @@ def play(generator):
                     logger.debug("roll d20=%s", d)
                     # If it says 'You say "' then it's still dialouge. Normalise it by removing `You say `, we will add again soon
                     action = re.sub("^ ?[Yy]ou say [\"']", '"', action)
-                    if any(action.lstrip().startswith(t) for t in ['"', "'"]):
+                    # remove unnecessary leading information from the action, such as > and 'you'
+                    prefixRegex = re.search("^(?:>\s+)?(?:[Yy]ou\s+)?(.*)$", action)
+                    if prefixRegex:
+                        action = prefixRegex.group(1)
+                    # remove 'say' and convert outside quotes to double-quotes
+                    sayRegex = re.search("^(?:[Ss]ay)?\s+([\"'].*[\"'])", action)
+                    if sayRegex:
+                        action = '"' + sayRegex.group(1)[1:-1] + '"' if len(sayRegex.group(1)) >= 3 else "say nothing"
                         if settings.getboolean("action-d20"):
                             action = d20ify_speech(action, d)
                         else:
@@ -462,12 +469,8 @@ def play(generator):
                         if action[-1] not in [".", "?", "!"]:
                             action = action + "."
 
-                action = "\n> " + action + "\n"
-
-                colPrint(
-                    "\n>" + action.lstrip().lstrip("> \n"),
-                    colors["transformed-user-text"],
-                )
+                # show the player the final action and get a result from the story manager
+                colPrint("\n> " + action + "\n", colors["transformed-user-text"])
                 result = "\n" + story_manager.act(action)
 
                 if len(story_manager.story.results) >= 2:
