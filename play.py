@@ -566,7 +566,6 @@ def play(generator):
                     if not action or len(action.strip()) == 0:
                         output("Invalid story insert. ", "error")
                         continue
-                    action = action[1:]
                     output(format_result(action), "user-text")
 
                 # If the player enters a real action
