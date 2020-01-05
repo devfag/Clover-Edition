@@ -567,7 +567,11 @@ def play(generator):
                     d = random.randint(1, 20)
                     logger.debug("roll d20=%s", d)
 
-                    sugg_action_regex = re.search("^ *(?:you)? *([0-9]+)$", action, flags=re.IGNORECASE)
+                    # Add the "you" if it's not prompt-toolkit
+                    if not settings.getboolean("prompt-toolkit"):
+                        action = re.sub("^ *(?:you)? *(?! *you)(.+)$", "You \\1", action, flags=re.IGNORECASE)
+
+                    sugg_action_regex = re.search(r"^ *(?:you)? *([0-9]+)$", action, flags=re.IGNORECASE)
                     user_speech_regex = re.search(r"^ *you *say *([\"'].*[\"'])$", action, flags=re.IGNORECASE)
                     user_action_regex = re.search(r"^ *you *(.+)$", action, flags=re.IGNORECASE)
 
@@ -594,7 +598,7 @@ def play(generator):
                         action = action + "."
 
                     # If the user enters nothing but leaves "you", treat it like an empty action (continue)
-                    if re.match(r"^ *you *[.?!]?$", action, flags=re.IGNORECASE):
+                    if re.match(r"^ *you *[.?!]? *$", action, flags=re.IGNORECASE):
                         action = ""
 
                     # Prompt the user with the formatted action
