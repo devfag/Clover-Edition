@@ -162,13 +162,13 @@ def new_story(generator, context, prompt, memory=None, first_result=None):
 
 def save_story(story):
     """Saves the existing story to a json file in the saves directory to be resumed later."""
-    savefile = story.savefile
+    savefile = story.savefile if story.savefile else ""
     while True:
         print()
         temp_savefile = input_line("Please enter a name for this save: ",
                                    "query", "user-text")
         savefile = temp_savefile if len(temp_savefile.strip()) > 0 else savefile
-        if len(savefile.strip()) == 0:
+        if not savefile or len(savefile.strip()) == 0:
             output("Please enter a valid savefile name. ", "error")
         else:
             break
