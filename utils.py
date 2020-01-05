@@ -195,7 +195,6 @@ def input_line(str, col1="default", default=""):
     if use_ptoolkit() and ptcolors['displaymethod'] == "prompt-toolkit":
         col1 = ptcolors[col1] if col1 and ptcolors[col1] else ""
         val = ptprompt(to_formatted_text(str, col1), default=default)
-        print()
     else:
         clb1 = "\x1B[{}m".format(colors[col1]) if col1 and colors[col1] and colors[col1][0].isdigit() else ""
         cle1 = "\x1B[0m" if col1 and colors[col1] and colors[col1][0].isdigit() else ""
