@@ -58,13 +58,14 @@ else:
 
         logger.info(
             'Python Prompt Toolkit has been imported. This enables a number of editing features but may cause bugs for colab users.')
-    except ModuleNotFoundError:
+    except (ImportError, ModuleNotFoundError):
         try:
+            settings['prompt-toolkit'] = "off"
             import readline
 
             logger.info(
                 'readline has been imported. This enables a number of editting features but may cause bugs for colab users.')
-        except ModuleNotFoundError:
+        except (ImportError, ModuleNotFoundError):
             pass
 
 termWidth = get_terminal_size()[0]
