@@ -329,8 +329,8 @@ def play(generator):
                 output("Prompt>", "main-prompt")
                 prompt = edit_multiline()
             else:
-                context = input_line("Context> ", "main-prompt", "user-text")
-                prompt = input_line("Prompt> ", "main-prompt", "user-text")
+                context = input_line("Context> ", "main-prompt")
+                prompt = input_line("Prompt> ", "main-prompt")
             filename = input_line(
                 "Name to save prompt as? (Leave blank for no save): ",
                 "query",
@@ -388,7 +388,11 @@ def play(generator):
 
             bell()
             print()
-            action = input_line("> You ", "main-prompt", "user-text")
+
+            if use_ptoolkit():
+                action = input_line("> ", "main-prompt", default="%s" % "You ")
+            else:
+                action = input_line("> You ", "main-prompt")
 
             # Clear suggestions and user input
             if act_alts > 0:
@@ -396,7 +400,7 @@ def play(generator):
                 if not IN_COLAB:
                     clear_lines(action_suggestion_lines)
 
-            cmd_regex = re.search(r"^/([^ ]+) *(.*)$", action)
+            cmd_regex = re.search(r"^(?: *[Yy]ou *)?/([^ ]+) *(.*)$", action)
 
             # If this is a command
             if cmd_regex:
@@ -415,18 +419,8 @@ def play(generator):
                             )
                         )
                         settings[cmd_args[0]] = cmd_args[1]
-                        output("Save config file?", "query")
-                        output(
-                            "Saving an invalid option will corrupt file! ", "error"
-                        )
-                        if (
-                                input_line(
-                                    "y/n? >",
-                                    "selection-prompt",
-                                    "selection-value",
-                                )
-                                == "y"
-                        ):
+                        output("Saving an invalid option will corrupt file! ", "error")
+                        if input_bool("Save setting? (y/N): ", "selection-prompt"):
                             try:
                                 with open("config.ini", "w", encoding="utf-8") as file:
                                     config.write(file)
@@ -545,8 +539,7 @@ def play(generator):
                     first_result = story.results[-1]
                     output(story.context, "user-text", "(YOUR SUMMARY HERE)", "message")
                     output(story.results[-1], "ai-text")
-                    new_prompt = input_line("Enter the summary for the new story: ",
-                                            "query", "user-text")
+                    new_prompt = input_line("Enter the summary for the new story: ", "query")
                     new_prompt = format_result(new_prompt)
                     if len(new_prompt) == 0:
                         output("Invalid new prompt; cancelling. ", "error")
@@ -605,9 +598,6 @@ def play(generator):
                                 action = "You " + action
                         if action[-1] not in [".", "?", "!"]:
                             action = action + "."
-
-                    if use_ptoolkit():
-                        action = ptprompt("For REAL: ", default="%s" % action)
 
                     # Prompt the user with the formatted action
                     output("> " + format_result(action), "transformed-user-text")
