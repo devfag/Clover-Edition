@@ -562,7 +562,8 @@ def play(generator):
 
                 # If the player enters a story insert.
                 if story_insert_regex:
-                    if len(action) == 1:
+                    action = story_insert_regex.group(1)
+                    if not action or len(action.strip()) == 0:
                         output("Invalid story insert. ", "error")
                         continue
                     action = action[1:]
