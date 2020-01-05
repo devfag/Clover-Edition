@@ -558,8 +558,10 @@ def play(generator):
             else:
                 action = format_result(action)
 
+                story_insert_regex = re.search("^ *(?:you)? *! *(.*)$", action, flags=re.IGNORECASE)
+
                 # If the player enters a story insert.
-                if action != "" and action[0] == "!":
+                if story_insert_regex:
                     if len(action) == 1:
                         output("Invalid story insert. ", "error")
                         continue
