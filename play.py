@@ -400,11 +400,12 @@ def play(generator):
                 if not IN_COLAB:
                     clear_lines(action_suggestion_lines)
 
-            cmd_regex = re.search(r"^(?: *[Yy]ou *)?/([^ ]+) *(.*)$", action)
+            # Users can type in "/command", or "You /command" if prompt_toolkit is on and they left the "You" in
+            cmd_regex = re.search(r"^(?: *you *)?/([^ ]+) *(.*)$", action, flags=re.IGNORECASE)
 
             # If this is a command
             if cmd_regex:
-                action = cmd_regex.group(1)
+                action = cmd_regex.group(1).strip().lower()
                 cmd_args = cmd_regex.group(2).strip().split()
                 if action == "set":
                     if len(cmd_args) < 2:
