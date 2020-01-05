@@ -555,12 +555,6 @@ def play(generator):
 
             # Otherwise this is just a normal action.
             else:
-                # If we're using suggestions and a player entered one
-                if act_alts > 0:
-                    # Options to select a suggestion action
-                    if action in [str(i) for i in range(len(suggested_actions))]:
-                        action = suggested_actions[int(action)]
-
                 action = format_result(action)
 
                 # If the player enters a story insert.
@@ -573,31 +567,39 @@ def play(generator):
 
                 # If the player enters a real action
                 elif action != "":
-                    # Roll a 20 sided dice to make things interesting
+                    # Roll a die. We'll use it later if action-d20 is enabled.
                     d = random.randint(1, 20)
                     logger.debug("roll d20=%s", d)
-                    # If it says 'You say "' then it's still dialouge. Normalise it by removing `You say `, we will add again soon
-                    action = re.sub("^ ?[Yy]ou say [\"']", '"', action)
-                    if any(action.lstrip().startswith(t) for t in ['"', "'"]):
+
+                    sugg_action_regex = re.search("^ *(?:you)? *([0-9]+)$", action, flags=re.IGNORECASE)
+                    user_speech_regex = re.search(r"^ *you *say *([\"'].*[\"'])$", action, flags=re.IGNORECASE)
+                    user_action_regex = re.search(r"^ *you *(.+)$", action, flags=re.IGNORECASE)
+
+                    if sugg_action_regex:
+                        action = sugg_action_regex.group(1)
+                        if action in [str(i) for i in range(len(suggested_actions))]:
+                            action = "You " + suggested_actions[int(action)].strip()
+
+                    if user_speech_regex:
+                        action = user_speech_regex.group(1)
                         if settings.getboolean("action-d20"):
                             action = d20ify_speech(action, d)
                         else:
                             action = "You say " + action
-                        logger.info("%r. %r, %r", action, any(action.lstrip().startswith(t) for t in ['"', "'"]),
-                                    settings.getboolean("action-d20"))
-                    else:
-                        action = first_to_second_person(action)
-                        if not action.lower().startswith(
-                                "you "
-                        ) and not action.lower().startswith("i "):
-                            action = action[0].lower() + action[1:]
-                            # roll a d20
-                            if settings.getboolean("action-d20"):
-                                action = d20ify_action(action, d)
-                            else:
-                                action = "You " + action
-                        if action[-1] not in [".", "?", "!"]:
-                            action = action + "."
+
+                    elif user_action_regex:
+                        action = first_to_second_person(user_action_regex.group(1))
+                        if settings.getboolean("action-d20"):
+                            action = d20ify_action(action, d)
+                        else:
+                            action = "You " + action
+
+                    if action[-1] not in [".", "?", "!"]:
+                        action = action + "."
+
+                    # If the user enters nothing but leaves "you", treat it like an empty action (continue)
+                    if re.match(r"^ *you *[.?!]?$", action, flags=re.IGNORECASE):
+                        action = ""
 
                     # Prompt the user with the formatted action
                     output("> " + format_result(action), "transformed-user-text")

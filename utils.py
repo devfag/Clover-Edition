@@ -616,24 +616,22 @@ def standardize_punctuation(text):
 
 
 def first_to_second_person(text):
-    text = " " + text
     text = standardize_punctuation(text)
-    if text[-1] not in [".", "?", "!"]:
-        text += "."
     for pair in first_to_second_mappings:
         variations = mapping_variation_pairs(pair)
         for variation in variations:
             text = replace_outside_quotes(text, variation[0], variation[1])
-
-    return capitalize_first_letters(text[1:])
+    if text[-1] not in [".", "?", "!"]:
+        text += "."
+    return text
 
 
 def second_to_first_person(text):
-    text = " " + text
     text = standardize_punctuation(text)
     for pair in second_to_first_mappings:
         variations = mapping_variation_pairs(pair)
         for variation in variations:
             text = replace_outside_quotes(text, variation[0], variation[1])
-
-    return capitalize_first_letters(text[1:])
+    if text[-1] not in [".", "?", "!"]:
+        text += "."
+    return text
