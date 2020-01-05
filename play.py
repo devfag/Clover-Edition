@@ -165,8 +165,7 @@ def save_story(story):
     savefile = story.savefile if story.savefile else ""
     while True:
         print()
-        temp_savefile = input_line("Please enter a name for this save: ",
-                                   "query", "user-text")
+        temp_savefile = input_line("Please enter a name for this save: ", "query")
         savefile = temp_savefile if len(temp_savefile.strip()) > 0 else savefile
         if not savefile or len(savefile.strip()) == 0:
             output("Please enter a valid savefile name. ", "error")
@@ -331,14 +330,8 @@ def play(generator):
             else:
                 context = input_line("Context> ", "main-prompt")
                 prompt = input_line("Prompt> ", "main-prompt")
-            filename = input_line(
-                "Name to save prompt as? (Leave blank for no save): ",
-                "query",
-                "user-text",
-            )
-            filename = re.sub(
-                "-$", "", re.sub("^-", "", re.sub("[^a-zA-Z0-9_-]+", "-", filename))
-            )
+            filename = input_line("Name to save prompt as? (Leave blank for no save): ", "query")
+            filename = re.sub("-$", "", re.sub("^-", "", re.sub("[^a-zA-Z0-9_-]+", "-", filename)))
             if filename != "":
                 try:
                     with open(
